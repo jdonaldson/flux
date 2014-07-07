@@ -70,9 +70,6 @@ class Flow {
 
     }
 
-    public static function visitElements(state : Expr, fx : Fast, exprs : Array<Expr>){
-    }
-
     /**
       Converts a simple anonymous object (or reference to one) to an anonymous
       object containing stream versions of the original field values.
@@ -114,40 +111,5 @@ class Flow {
         return {expr:expr, pos : Context.currentPos()};
     }
 #end
-     macro public static function ostreamify(arg:ExprOf<Dynamic<Dynamic>>){
-        var expr = 
-            switch(arg.expr){
-                case EObjectDecl(fields) : {
-                    EObjectDecl(fields.map(function(x){
-                        var expr = x.expr;
-
-                        return {
-                            field : x.field,
-                            expr : macro promhx.PublicStream.publicstream($expr)
-                        }
-                    }));
-                }
-                case EConst(c): {
-                    switch(Context.typeof(arg)){
-                        case TAnonymous(a) : {
-                            EObjectDecl(a.get().fields.map(function(x){ 
-                                var name = x.name;
-                                return {
-                                    field : name, 
-                                    expr : macro promhx.PublicStream.publicstream($arg.$name) 
-                                };
-                            }));
-                        }
-                        case _ : {
-                            EObjectDecl([]);
-                        };
-                    }
-                }
-                case _ : {
-                    EObjectDecl([]);
-                }
-            }
-        return {expr:expr, pos : Context.currentPos()};
-    }
 }
 

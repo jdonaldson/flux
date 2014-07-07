@@ -10,5 +10,3 @@ class FlowContainer<T> extends Sprite{
         this.state = state;
     }
 }
-
-
