@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="Flow" package="com.example.flow" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="Flow" />
+	
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="promhx" />
+	<haxelib name="tjson" />
+	
+	<assets path="Assets" rename="assets" exclude="openfl.svg" />
+	<icon path="Assets/openfl.svg" />
+	
+</project>
