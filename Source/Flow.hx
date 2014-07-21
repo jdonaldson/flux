@@ -15,10 +15,11 @@ class Flow {
         var exprs:Array<Expr> = [];
         var state = streamify(ostate);
         var fx = new Fast(Xml.parse(xml));
-        var elements = [for (n in fx.elements) n];
+        var elements = [for (n in fx.elements) {node : n, rootname: 'fc'}];
+        var counter = 0;
         while (elements.length > 0){
             var elt = elements.shift();
-            var pack = elt.name.split('.'); 
+            var pack = elt.node.name.split('.'); 
             var name = pack.pop();
             var typepath = {
                 params : [],
@@ -27,43 +28,43 @@ class Flow {
             }
 
             var setexprs:Array<Expr> = [];
-            for (att in elt.x.attributes()){
+            for (att in elt.node.x.attributes()){
                 if (~/^:/.match(att)){
                     // link mode
                     var attname = att.substring(1);
                     setexprs.push(macro {
-                        fc.state.$attname.then(function(x){
+                        $i{'fc$counter'}.state.$attname.then(function(x){
                             o.$attname = untyped x;
                         });
                     });
                 } else if (~/^\./.match(att)){
                     // literal mode
                     var attname = att.substring(1);
-                    var val = Context.parseInlineString(elt.x.get(att), Context.currentPos());
+                    var val = Context.parseInlineString(elt.node.x.get(att), Context.currentPos());
                     setexprs.push(macro o.$attname = $val); 
                 } else {
                     // string mode
-                    var name = elt.x.get(att);
+                    var name = elt.node.x.get(att);
                     setexprs.push(macro o.$att = $v{name} );
                 }
             }
 
-            for (c in elt.elements){
-                elements.push(c);
+            for (c in elt.node.elements){
+                elements.push({node: c, rootname : 'fc$counter++'});
             }
 
             exprs.push( macro {
                  var o = new $typepath();
                  $b{setexprs};
-                 fc.addChild(o);
+                 $i{'fc$counter'}.addChild(o);
             });
         }
         var children = {expr:EArrayDecl(exprs), pos:Context.currentPos()};
         // var children = {expr:EArrayDecl([]), pos:Context.currentPos()};
         return $b{ macro {
-            var fc = new FlowContainer($state);
+            var fc0 = new FlowContainer($state);
             $b{exprs};
-            fc;
+            fc0;
         }}; 
 
         return macro $b{exprs};
