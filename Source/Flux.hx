@@ -8,7 +8,7 @@ import haxe.macro.Expr;
 import promhx.PublicStream;
 import haxe.xml.Fast;
 
-class Flow {
+class Flux {
 
     macro public static function on(ostate : ExprOf<Dynamic<Dynamic>>, xml: String){
         
@@ -28,7 +28,9 @@ class Flow {
             }
 
             var setexprs:Array<Expr> = [];
-            for (att in elt.node.x.attributes()){
+            var compexprs : Array<Expr> = []; 
+            var atts = elt.node.x.attributes();
+            for (att in atts){
                 if (~/^:/.match(att)){
                     // link mode
                     var attname = att.substring(1);
@@ -37,17 +39,26 @@ class Flow {
                             o.$attname = untyped x;
                         });
                     });
+                    compexprs.push(macro o1.$attname = o2.$attname);
                 } else if (~/^\./.match(att)){
                     // literal mode
                     var attname = att.substring(1);
                     var val = Context.parseInlineString(elt.node.x.get(att), Context.currentPos());
                     setexprs.push(macro o.$attname = $val); 
+                    compexprs.push(macro o1.$attname = o2.$attname);
                 } else {
                     // string mode
                     var name = elt.node.x.get(att);
                     setexprs.push(macro o.$att = $v{name} );
+                    compexprs.push(macro o1.$att = o2.$att);
                 }
             }
+            var compfunc = macro {
+                 o._flux_patch = function(o1, o2){
+                    $b{compexprs};
+                }
+            }
+            setexprs.push(compfunc);
 
             for (c in elt.node.elements){
                 elements.push({node: c, rootname : 'fc$counter++'});
@@ -60,9 +71,8 @@ class Flow {
             });
         }
         var children = {expr:EArrayDecl(exprs), pos:Context.currentPos()};
-        // var children = {expr:EArrayDecl([]), pos:Context.currentPos()};
         return $b{ macro {
-            var fc0 = new FlowContainer($state);
+            var fc0 = new FluxContainer($state);
             $b{exprs};
             fc0;
         }}; 
@@ -82,7 +92,6 @@ class Flow {
                 case EObjectDecl(fields) : {
                     EObjectDecl(fields.map(function(x){
                         var expr = x.expr;
-
                         return {
                             field : x.field,
                             expr : macro promhx.PublicStream.publicstream($expr)
