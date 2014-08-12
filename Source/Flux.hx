@@ -31,11 +31,12 @@ class Flux {
             var compexprs : Array<Expr> = []; 
             var atts = elt.node.x.attributes();
             for (att in atts){
+                var valname = elt.node.x.get(att);
                 if (~/^:/.match(att)){
                     // link mode
                     var attname = att.substring(1);
                     setexprs.push(macro {
-                        $i{'fc$counter'}.state.$attname.then(function(x){
+                        $i{'fc$counter'}.state.$valname.then(function(x){
                             o.$attname = untyped x;
                         });
                     });
@@ -54,7 +55,7 @@ class Flux {
                 }
             }
             var compfunc = macro {
-                 o._flux_patch = function(o1, o2){
+                 o._flux_compare = function(o1, o2){
                     $b{compexprs};
                 }
             }
