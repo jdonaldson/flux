@@ -10,10 +10,10 @@ import haxe.xml.Fast;
 
 class Flux {
 
-    macro public static function on(ostate : ExprOf<Dynamic<Dynamic>>, xml: String){
+    macro public static function on(oprops : ExprOf<Dynamic<Dynamic>>, ostate : ExprOf <Dynamic<Dynamic>>, xml: String){
         
         var exprs:Array<Expr> = [];
-        var state = streamify(ostate);
+        var props = streamify(oprops);
         var fx = new Fast(Xml.parse(xml));
         var elements = [for (n in fx.elements) {node : n, rootname: 'fc'}];
         var counter = 0;
@@ -36,7 +36,7 @@ class Flux {
                     // link mode
                     var attname = att.substring(1);
                     setexprs.push(macro {
-                        $i{'fc$counter'}.state.$valname.then(function(x){
+                        $i{'fc$counter'}.props.$valname.then(function(x){
                             o.$attname = untyped x;
                         });
                     });
@@ -72,9 +72,13 @@ class Flux {
             });
         }
         var children = {expr:EArrayDecl(exprs), pos:Context.currentPos()};
+
         return $b{ macro {
-            var fc0 = new FluxContainer($state);
-            $b{exprs};
+            var fc0 = new FluxContainer($props);
+            fc0._flux_render = function(){
+                $b{exprs};
+            }
+            fc0._flux_render();
             fc0;
         }}; 
 
@@ -105,8 +109,8 @@ class Flux {
                             EObjectDecl(a.get().fields.map(function(x){ 
                                 var name = x.name;
                                 return {
-                                    field : name, 
-                                    expr : macro promhx.PublicStream.publicstream($arg.$name) 
+                                    field : name,
+                                    expr  : macro promhx.PublicStream.publicstream($arg.$name)
                                 };
                             }));
                         }

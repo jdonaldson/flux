@@ -1,4 +1,10 @@
+import flash.display.DisplayObjectContainer;
+import haxe.ds.Vector;
+import flash.display.DisplayObject;
 class FluxUtils {
-    public static function diff(obj1:IFlux, obj2:IFlux){
+    public static function recycle(obj:DisplayObjectContainer) : Iterator<DisplayObject> {
+        [for idx in 0...obj.numChildren obj.getChildAt(idx)] 
+
+
     }
 }
