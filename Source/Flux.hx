@@ -7,10 +7,52 @@ import promhx.Stream;
 import haxe.macro.Expr;
 import promhx.PublicStream;
 import haxe.xml.Fast;
+import com.tenderowls.xml176.*;
 
 class Flux {
 
-    macro public static function on(oprops : ExprOf<Dynamic<Dynamic>>, ostate : ExprOf <Dynamic<Dynamic>>, xml: String){
+    macro public static function compose<T,U>(template:ExprOf<String>){
+        
+        var exprs:Array<Expr> = [];
+        if (template != null){
+            switch(template.expr){
+                case EConst(CString(c)) : {
+                    var tx = com.tenderowls.txml176.Xml176Parser.parse(c);
+                    var xml = tx.document.firstElement();
+
+                    var links : Array<Expr> = [];
+                    for (a in xml.attributes()){
+                        var expr = tx.getAttributeTemplate(xml, a);
+                        if (expr != null){
+                            var m_expr = Context.parseInlineString(expr, Context.currentPos());
+                            links.push(macro o.stream.$a.resolve(${m_expr}));
+                        }
+                    }
+                    var root = tx.document.firstElement();
+                    var pack = root.nodeName.split('.');
+                    var name = pack.pop();
+                    var typepath = {
+                        params : [],
+                        pack : pack,
+                        name : name
+                    }
+                    exprs.push( macro { 
+                        var o = new $typepath(); 
+                        $b{links}
+                        o;
+                    });
+
+
+                };
+                case _ : null;
+            }
+
+        }
+        return macro $b{exprs};
+    }
+
+
+    macro static function on2(oprops : ExprOf<Dynamic<Dynamic>>, ostate : ExprOf <Dynamic<Dynamic>>, xml: String){
         
         var exprs:Array<Expr> = [];
         var props = streamify(oprops);
@@ -127,4 +169,5 @@ class Flux {
     }
 #end
 }
+
 

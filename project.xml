@@ -5,11 +5,10 @@
 	<app main="Main" path="Export" file="Flux" />
 	
 	<source path="Source" />
-    <source path="External/xml176/src/main" />
+    <source path="./External/xml176/src/main/haxe" />
 	
 	<haxelib name="openfl" />
 	<haxelib name="promhx" />
-	<haxelib name="tjson" />
 	
 	<assets path="Assets" rename="assets" exclude="openfl.svg" />
 	<icon path="Assets/openfl.svg" />
