@@ -10,20 +10,18 @@ import flux.Foo;
 class Main extends Sprite {
 	public function new () {
 		super ();
-		trace('hi');
 
-		return;
 		var s = new Stream<Int>();
 
 		var k = new FluxContainer();
-
 		var t = new haxe.Timer(20);
 		var count = 0;
+		var j = Stream.stream(4);
 
         var f = Flux.compose("
-
-                <FluxContainer text={'ho'}/>
-                
+                <FluxContainer x={j}>
+                    <FluxContainer x={12}>
+                </FluxContainer>
                 ");
 
 		t.run = function(){
@@ -35,27 +33,5 @@ class Main extends Sprite {
         flash.Lib.current.addChild(f);
 	}
 
-	public function new2 () {
-	    var i = new promhx.PublicStream<String>();
-	 	// var foob = Flux.compose(
-		        // "
-		            // <flux.text.TextField text={i}/>
-                // "
-		        // );
-	 	// var foob = Flux.compose(
-		        // "
-		        // <pool for={i in 0..4}>
-		            // <flux.text.TextField text={i}/>
-                // </pool>
-                // "
-		        // );
-		// var t = new haxe.Timer(20);
-		// var count = 0;
-		// t.run = function(){
-		//     foob.props.x.resolve(count);
-		//     count+=1;
-        // }
-		// flash.Lib.current.addChild(foob);
-	}
 }
 
