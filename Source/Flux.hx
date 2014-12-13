@@ -15,40 +15,45 @@ class Flux {
             case EConst(CString(c)) :{
                 var tx    = Xml176Parser.parse(c);
                 var xml   = tx.document.firstElement();
-                linkXmlTemplateAttributes(tx, xml);
+                bindTemplate(tx, xml);
             }
             case _ : throw("Flux template must be a literal string expression");
         }
-        return macro $b{exprs};
+        return exprs;
     }
 
 
 #if macro
-    public static function linkXmlTemplateAttributes(tx:com.tenderowls.txml176.Xml176Document, xml:Xml){
-
+    public static function bindTemplate(tx:com.tenderowls.txml176.Xml176Document, xml:Xml) : Expr {
         var exprs = new Array<Expr>();
         var links = new Array<Expr>();
 
         for (a in xml.attributes()){
             var expr = tx.getAttributeTemplate(xml, a);
             if (expr != null){
-                var m_expr = Context.parseInlineString(
-                        expr, 
-                        Context.currentPos());
+                var m_expr =
+                    Context.parseInlineString( expr, Context.currentPos());
 
-                links.push(switch(m_expr.expr){
+                var link_expr = switch(m_expr.expr){
                     case EConst(CIdent(s)) :  macro {
-                        var idf = function(x) return x;
-                        promhx.base.AsyncBase.link( $m_expr, o.stream.$a, idf);
+                        promhx.base.AsyncBase.link(
+                                $m_expr,
+                                o.stream.$a,
+                                function(x) return x
+                                );
                     }
                     case  EConst(_) : macro o.stream.$a.resolve($m_expr);
                     default : null;
-                });
-
+                };
+                links.push(link_expr);
             }
         }
+        var body_exprs = new Array<Expr>();
         for (c in xml){
-            trace(c);
+            switch(c.nodeType){
+                case 'element' : body_exprs.push(Flux.bindTemplate(tx, c));
+                default : null;
+            }
         }
 
         var root = tx.document.firstElement();
@@ -59,21 +64,18 @@ class Flux {
             pack : pack,
             name : name
         }
-        exprs.push( macro { 
-            var o = new $typepath(); 
+        return macro {
+            var o = new $typepath();
             $b{links}
+            $b{body_exprs}
             o;
-        });
-        return exprs;
+        };
+
     }
 
-
-
-    inline public static function identity<T>(x:T) return x;
 #end
 
-
-
 }
+
 
 
