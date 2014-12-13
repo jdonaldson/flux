@@ -1,5 +1,6 @@
 
 import com.tenderowls.txml176.*;
+import haxe.Template;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.TypeTools;
@@ -23,8 +24,7 @@ class Flux {
     }
 
 
-#if macro
-    public static function bindTemplate(tx:com.tenderowls.txml176.Xml176Document, xml:Xml) : Expr {
+    public static function bindTemplate(tx:Xml176Document, xml:Xml) : Expr {
         var exprs = new Array<Expr>();
         var links = new Array<Expr>();
 
@@ -48,7 +48,9 @@ class Flux {
                 links.push(link_expr);
             }
         }
+
         var body_exprs = new Array<Expr>();
+
         for (c in xml){
             switch(c.nodeType){
                 case 'element' : body_exprs.push(Flux.bindTemplate(tx, c));
@@ -73,7 +75,6 @@ class Flux {
 
     }
 
-#end
 
 }
 
