@@ -116,9 +116,19 @@ class FluxUtils {
             access : [APublic]
         }
 
+        var flx_id = {
+            name   : "_flx_id",
+            kind   : FVar(TPath({name:"String", pack:[], params:[]})),
+            meta   : [],
+            doc    : null,
+            pos    : Context.currentPos(),
+            access : []
+        }
+
         adj_fields.push(stream_field);
         adj_fields.push(conflux_init);
         adj_fields.push(reset);
+        adj_fields.push(flx_id);
         return adj_fields;
     }
 

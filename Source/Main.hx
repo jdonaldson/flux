@@ -13,24 +13,29 @@ class Main extends Sprite {
 
 		var s = new Stream<Int>();
 
-		var k = new FluxContainer();
+		// var k = new FluxContainer();
 		var t = new haxe.Timer(20);
 		var count = 0;
 		var j = Stream.stream(4);
 
+        // var f = Flux.compose("
+        //         <FluxContainer x={j} color={0xFF0000}>
+        //             <FluxContainer x={12} color={0x0000FF}>
+        //         </FluxContainer>
+        //         ");
+
         var f = Flux.compose("
-                <FluxContainer x={j}>
-                    <FluxContainer x={12}>
-                </FluxContainer>
+                <pool arr={[1,2,3]}>
+                    <FluxContainer x={j} color={0x0000FF}/>
+                </pool>
                 ");
 
-		t.run = function(){
-		    var cnt = count++;
-		    k.stream.x.resolve(cnt);
-		    f.stream.x.resolve(cnt+10);
-        }
-        flash.Lib.current.addChild(k);
-        flash.Lib.current.addChild(f);
+		// t.run = function(){
+		//     var cnt = count++;
+		//     k.stream.x.resolve(cnt);
+		//     f.stream.x.resolve(cnt+10);
+        // }
+        // flash.Lib.current.addChild(f);
 	}
 
 }

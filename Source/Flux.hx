@@ -10,7 +10,7 @@ import promhx.Stream;
 
 class Flux {
 
-    macro public static function compose<T,U>(template:ExprOf<String>){
+    macro public static function compose<T, U>(template : ExprOf<String>){
         if (template == null) return macro null;
         var exprs = switch(template.expr){
             case EConst(CString(c)) :{
@@ -24,9 +24,10 @@ class Flux {
     }
 
 
-    public static function bindTemplate(tx:Xml176Document, xml:Xml) : Expr {
+#if macro
+    public static function bindTemplate(tx : Xml176Document, xml : Xml): Expr {
         var exprs = new Array<Expr>();
-        var links = new Array<Expr>();
+        var attr_links = new Array<Expr>();
 
         for (a in xml.attributes()){
             var expr = tx.getAttributeTemplate(xml, a);
@@ -35,17 +36,23 @@ class Flux {
                     Context.parseInlineString( expr, Context.currentPos());
 
                 var link_expr = switch(m_expr.expr){
-                    case EConst(CIdent(s)) :  macro {
-                        promhx.base.AsyncBase.link(
-                                $m_expr,
-                                o.stream.$a,
-                                function(x) return x
-                                );
+                    case EConst(CIdent(s)) :  {
+                        var cur_type = Context.typeof(m_expr);
+                        var async_type = Context.typeof(macro new promhx.Stream<Dynamic>());
+                        // return macro null;
+                        macro { untyped 
+
+                            promhx.base.AsyncBase.link(
+                                    $m_expr,
+                                    o.stream.$a,
+                                    function(x) return x
+                                    );
+                        }
                     }
-                    case  EConst(_) : macro o.stream.$a.resolve($m_expr);
+                    case EConst(_), EArrayDecl(_) : macro untyped o.stream.$a.resolve($m_expr);
                     default : null;
                 };
-                links.push(link_expr);
+                if (link_expr != null) attr_links.push(link_expr);
             }
         }
 
@@ -58,7 +65,7 @@ class Flux {
             }
         }
 
-        var root = tx.document.firstElement();
+        var root = xml;
         var pack = root.nodeName.split('.');
         var name = pack.pop();
         var typepath = {
@@ -66,14 +73,25 @@ class Flux {
             pack : pack,
             name : name
         }
-        return macro {
-            var o = new $typepath();
-            $b{links}
-            $b{body_exprs}
-            o;
-        };
+        if (typepath.name != "pool"){
+            return macro {
+                var o = new $typepath();
+                $b{attr_links} 
+                for (a in $a{body_exprs}) o.addChild(a); 
+                o;
+            };
+
+        } else {
+            return macro {
+                var o = new flux.Pool(function() return $a{body_exprs});
+                $b{attr_links}
+                o;
+            }
+        }
+        
 
     }
+#end
 
 
 }
