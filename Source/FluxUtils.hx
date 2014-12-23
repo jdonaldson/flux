@@ -51,17 +51,13 @@ class FluxUtils {
            switch(s.kind){
                 case FVar(t,e) : {
                     var name = s.name;
-                    var init = macro stream.$name = new promhx.PublicStream();
+                    var init = macro stream.$name = new TemplateStream();
                     constructs.push(init);
-                    if (e != null){
-                        var reset = macro stream.$name.resolve(${e});
-                        resets.push(reset);
-                    }
 
                     s.kind=
                     FVar(TPath({ 
-                        name   : "PublicStream",
-                        pack   : ["promhx"],
+                        name   : "TemplateStream",
+                        pack   : [],
                         params : [TPType(t)]
                     }));
                 }
@@ -93,6 +89,53 @@ class FluxUtils {
 
         }
 
+        var templateControl = {
+            name : "templateControl",
+            kind : FVar(TPath({
+                name : "FluxTemplateControl", pack : [], params : []
+            })),
+            meta: [],
+            doc: null,
+            pos : Context.currentPos(),
+            access : []
+        }
+
+        var pauseStreams = {
+            name : "pauseStreams",
+            kind : FFun({
+                ret : null,
+                params : [],
+                expr : macro {
+                    for (a in this.templateBindings){
+                        trace(a);
+                    }
+                },
+                args : []
+            }),
+            meta   : [],
+            doc    : null,
+            pos    : Context.currentPos(),
+            access : [APublic]
+        }
+        var detachStreams = {
+            name : "detachStreams",
+            kind : FFun({
+                ret : null,
+                params : [],
+                expr : macro {
+                    for (a in this.templateBindings){
+                        trace(a);
+                    }
+                },
+                args : []
+            }),
+            meta   : [],
+            doc    : null,
+            pos    : Context.currentPos(),
+            access : [APublic]
+        }
+
+
         var stream_field = {
             name   : "stream",
             kind   : FVar(TAnonymous(stream)),
@@ -101,6 +144,17 @@ class FluxUtils {
             pos    : Context.currentPos(),
             access : [APublic]
         };
+
+        var templateBindings = {
+            name : "templateBindings",
+            kind : FVar(TPath({
+                name : "FluxBindings", pack : [], params: []
+            }), macro []),
+            meta : [],
+            doc : null,
+            pos : Context.currentPos(),
+            access : [APublic]
+        }
 
         var reset = {
             name : "reset",
@@ -129,6 +183,8 @@ class FluxUtils {
         adj_fields.push(conflux_init);
         adj_fields.push(reset);
         adj_fields.push(flx_id);
+        adj_fields.push(templateBindings);
+        adj_fields.push(pauseStreams);
         return adj_fields;
     }
 

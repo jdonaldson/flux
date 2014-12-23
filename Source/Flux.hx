@@ -37,19 +37,15 @@ class Flux {
 
                 var link_expr = switch(m_expr.expr){
                     case EConst(CIdent(s)) :  {
-                        var cur_type = Context.typeof(m_expr);
-                        var async_type = Context.typeof(macro new promhx.Stream<Dynamic>());
-                        // return macro null;
-                        macro { untyped 
-
-                            promhx.base.AsyncBase.link(
-                                    $m_expr,
-                                    o.stream.$a,
-                                    function(x) return x
-                                    );
+                        // var cur_type = Context.typeof(m_expr);
+                        // var async_type = Context.typeof(macro new TemplateStream<Dynamic>());
+                        macro { 
+                            o.templateBindings.push({from : $m_expr, to: o.stream.$a});
                         }
                     }
-                    case EConst(_), EArrayDecl(_) : macro untyped o.stream.$a.resolve($m_expr);
+                    case EConst(_), EArrayDecl(_) : macro  {
+                        o.stream.$a.setDefaultState($m_expr);
+                    }
                     default : null;
                 };
                 if (link_expr != null) attr_links.push(link_expr);
@@ -73,6 +69,7 @@ class Flux {
             pack : pack,
             name : name
         }
+
         if (typepath.name != "pool"){
             return macro {
                 var o = new $typepath();
@@ -95,6 +92,4 @@ class Flux {
 
 
 }
-
-
 

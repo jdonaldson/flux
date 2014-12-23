@@ -25,7 +25,7 @@ class Main extends Sprite {
         //         ");
 
         var f = Flux.compose("
-                <pool arr={[1,2,3]}>
+                <pool val='j' arr={[1,2,3]}>
                     <FluxContainer x={j} color={0x0000FF}/>
                 </pool>
                 ");
