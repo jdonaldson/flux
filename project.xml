@@ -9,6 +9,7 @@
 	
 	<haxelib name="openfl" />
 	<haxelib name="promhx" />
+	<haxelib name="tink_macro" />
 	
 	<assets path="Assets" rename="assets" exclude="openfl.svg" />
 	<icon path="Assets/openfl.svg" />

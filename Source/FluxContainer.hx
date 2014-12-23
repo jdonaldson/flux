@@ -5,6 +5,7 @@ import promhx.Stream;
 
 class FluxContainer implements IFlux extends flash.display.Sprite {
     @stream var x     : Int = 4;
+    @stream var y     : Int = 0;
     @stream var color : Int = 0x00FF00;
 
     public function new() {
@@ -14,6 +15,7 @@ class FluxContainer implements IFlux extends flash.display.Sprite {
         tf.y = 5;
         this.addChild(tf);
         stream.x.then(function(x){ this.x = x; });
+        stream.y.then(function(y){ this.y = y; });
         stream.color.then(function(color) { 
             this.graphics.clear();
             this.graphics.beginFill(color);

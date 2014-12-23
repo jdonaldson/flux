@@ -28,6 +28,7 @@ class Flux {
     public static function bindTemplate(tx : Xml176Document, xml : Xml): Expr {
         var exprs = new Array<Expr>();
         var attr_links = new Array<Expr>();
+        var pool_var = '';
 
         for (a in xml.attributes()){
             var expr = tx.getAttributeTemplate(xml, a);
@@ -49,8 +50,18 @@ class Flux {
                     default : null;
                 };
                 if (link_expr != null) attr_links.push(link_expr);
+            } else {
+                if (xml.nodeName == "pool"  && a == "val"){
+                    pool_var = xml.get(a); 
+                } else {
+                    attr_links.push(macro o.stream.$a.setDefaultState(macro ${xml.get(a)}));
+                }
             }
         }
+
+        attr_links.push(macro for (k in o.templateBindings) {
+            promhx.base.AsyncBase.link(k.from, k.to, function(x) return x);
+        });
 
         var body_exprs = new Array<Expr>();
 
@@ -61,8 +72,7 @@ class Flux {
             }
         }
 
-        var root = xml;
-        var pack = root.nodeName.split('.');
+        var pack = xml.nodeName.split('.');
         var name = pack.pop();
         var typepath = {
             params : [],
@@ -70,20 +80,21 @@ class Flux {
             name : name
         }
 
-        if (typepath.name != "pool"){
+        if (typepath.name == "pool"){
+            if (pool_var == "") Context.error("Pool var should be set for pool node", Context.currentPos());
+            return macro {
+                var o = new flux.Pool(function($pool_var) return $a{body_exprs});
+                $b{attr_links}
+                o;
+            }
+
+        } else {
             return macro {
                 var o = new $typepath();
                 $b{attr_links} 
                 for (a in $a{body_exprs}) o.addChild(a); 
                 o;
             };
-
-        } else {
-            return macro {
-                var o = new flux.Pool(function() return $a{body_exprs});
-                $b{attr_links}
-                o;
-            }
         }
         
 
