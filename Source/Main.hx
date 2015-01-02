@@ -14,10 +14,8 @@ class Main extends Sprite {
 
 		var s = new Stream<Int>();
 
-		// var k = new FluxContainer();
-		var t = new haxe.Timer(2000);
+		var t = new haxe.Timer(10);
 		var count = 0;
-		var k = Stream.stream(0);
 		var l = new PublicStream<Int>();
 
         var f = Flux.compose("
@@ -29,8 +27,8 @@ class Main extends Sprite {
 		t.run = function(){
 		    var cnt = count++;
 		    var newarr:Array<Int> = [];
-		    for (i in 0...Std.random(7)+1){
-		        newarr.push(Std.random(100));
+		    for (i in 0...Std.random(100)+1){
+		        newarr.push(Std.random(1000));
 		    }
             f.stream.arr.resolve(newarr);
 		    l.resolve(cnt);
