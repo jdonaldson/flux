@@ -1,0 +1,3 @@
+[submodule "External/xml176"]
+	path = External/xml176
+	url = https://github.com/HxJointForces/xml176.git

@@ -1,125 +1,104 @@
-#if !macro
-import flash.display.DisplayObjectContainer;
-#end
 
+import com.tenderowls.txml176.*;
+import haxe.Template;
 import haxe.macro.Context;
-import promhx.Stream;
 import haxe.macro.Expr;
-import promhx.PublicStream;
+import haxe.macro.TypeTools;
 import haxe.xml.Fast;
+import promhx.PublicStream;
+import promhx.Stream;
 
 class Flux {
 
-    macro public static function on(ostate : ExprOf<Dynamic<Dynamic>>, xml: String){
-        
-        var exprs:Array<Expr> = [];
-        var state = streamify(ostate);
-        var fx = new Fast(Xml.parse(xml));
-        var elements = [for (n in fx.elements) {node : n, rootname: 'fc'}];
-        var counter = 0;
-        while (elements.length > 0){
-            var elt = elements.shift();
-            var pack = elt.node.name.split('.'); 
-            var name = pack.pop();
-            var typepath = {
-                params : [],
-                pack : pack,
-                name : name
+    macro public static function compose<T, U>(template : ExprOf<String>){
+        if (template == null) return macro null;
+        var exprs = switch(template.expr){
+            case EConst(CString(c)) :{
+                var tx    = Xml176Parser.parse(c);
+                var xml   = tx.document.firstElement();
+                bindTemplate(tx, xml);
             }
-
-            var setexprs:Array<Expr> = [];
-            var compexprs : Array<Expr> = []; 
-            var atts = elt.node.x.attributes();
-            for (att in atts){
-                if (~/^:/.match(att)){
-                    // link mode
-                    var attname = att.substring(1);
-                    setexprs.push(macro {
-                        $i{'fc$counter'}.state.$attname.then(function(x){
-                            o.$attname = untyped x;
-                        });
-                    });
-                    compexprs.push(macro o1.$attname = o2.$attname);
-                } else if (~/^\./.match(att)){
-                    // literal mode
-                    var attname = att.substring(1);
-                    var val = Context.parseInlineString(elt.node.x.get(att), Context.currentPos());
-                    setexprs.push(macro o.$attname = $val); 
-                    compexprs.push(macro o1.$attname = o2.$attname);
-                } else {
-                    // string mode
-                    var name = elt.node.x.get(att);
-                    setexprs.push(macro o.$att = $v{name} );
-                    compexprs.push(macro o1.$att = o2.$att);
-                }
-            }
-            var compfunc = macro {
-                 o._flux_patch = function(o1, o2){
-                    $b{compexprs};
-                }
-            }
-            setexprs.push(compfunc);
-
-            for (c in elt.node.elements){
-                elements.push({node: c, rootname : 'fc$counter++'});
-            }
-
-            exprs.push( macro {
-                 var o = new $typepath();
-                 $b{setexprs};
-                 $i{'fc$counter'}.addChild(o);
-            });
+            case _ : throw("Flux template must be a literal string expression");
         }
-        var children = {expr:EArrayDecl(exprs), pos:Context.currentPos()};
-        return $b{ macro {
-            var fc0 = new FluxContainer($state);
-            $b{exprs};
-            fc0;
-        }}; 
-
-        return macro $b{exprs};
-
+        return exprs;
     }
 
-    /**
-      Converts a simple anonymous object (or reference to one) to an anonymous
-      object containing stream versions of the original field values.
-     **/
+
 #if macro
-     public static function streamify(arg:ExprOf<Dynamic<Dynamic>>){
-        var expr = 
-            switch(arg.expr){
-                case EObjectDecl(fields) : {
-                    EObjectDecl(fields.map(function(x){
-                        var expr = x.expr;
-                        return {
-                            field : x.field,
-                            expr : macro promhx.PublicStream.publicstream($expr)
+    public static function bindTemplate(tx : Xml176Document, xml : Xml): Expr {
+        var exprs = new Array<Expr>();
+        var attr_links = new Array<Expr>();
+        var pool_var = '';
+
+        for (a in xml.attributes()){
+            var expr = tx.getAttributeTemplate(xml, a);
+            if (expr != null){
+                var m_expr =
+                    Context.parseInlineString( expr, Context.currentPos());
+
+                var link_expr = switch(m_expr.expr){
+                    case EConst(CIdent(s)) :  {
+                        macro {
+                            o.templateBindings.push({from : $m_expr, to: o.stream.$a});
                         }
-                    }));
-                }
-                case EConst(c): {
-                    switch(Context.typeof(arg)){
-                        case TAnonymous(a) : {
-                            EObjectDecl(a.get().fields.map(function(x){ 
-                                var name = x.name;
-                                return {
-                                    field : name, 
-                                    expr : macro promhx.PublicStream.publicstream($arg.$name) 
-                                };
-                            }));
-                        }
-                        case _ : {
-                            EObjectDecl([]);
-                        };
                     }
-                }
-                case _ : {
-                    EObjectDecl([]);
+                    case EConst(_), EArrayDecl(_) : macro  {
+                        o.stream.$a.setDefaultState($m_expr);
+                    }
+                    default : null;
+                };
+                if (link_expr != null) attr_links.push(link_expr);
+            } else {
+                if (xml.nodeName == "pool"  && a == "val"){
+                    pool_var = xml.get(a);
+                } else {
+                    attr_links.push(macro o.stream.$a.setDefaultState(macro ${xml.get(a)}));
                 }
             }
-        return {expr:expr, pos : Context.currentPos()};
+        }
+
+        attr_links.push(macro for (k in o.templateBindings) {
+            promhx.base.AsyncBase.link(k.from, k.to, function(x) return x);
+        });
+
+        var body_exprs = new Array<Expr>();
+
+        for (c in xml){
+            switch(c.nodeType){
+                case 'element' : body_exprs.push(Flux.bindTemplate(tx, c));
+                default : null;
+            }
+        }
+
+        var pack = xml.nodeName.split('.');
+        var name = pack.pop();
+        var typepath = {
+            params : [],
+            pack : pack,
+            name : name
+        }
+
+        if (typepath.name == "pool"){
+            if (pool_var == "") Context.error("Pool var should be set for pool node", Context.currentPos());
+            return macro {
+                var o = new flux.Pool(function($pool_var) return $a{body_exprs});
+                $b{attr_links}
+                o;
+            }
+
+        } else {
+            return macro {
+                var o = new $typepath();
+                $b{attr_links}
+                for (a in $a{body_exprs}) o.addChild(a);
+                o;
+            };
+        }
+
+
     }
 #end
+
+
 }
 

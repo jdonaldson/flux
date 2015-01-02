@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="Flow" package="com.example.flow" version="1.0.0" company="Company Name" />
-	<app main="Main" path="Export" file="Flow" />
+	<meta title="Flux" package="com.example.flow" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="Flux" />
 	
 	<source path="Source" />
+    <source path="./External/xml176/src/main/haxe" />
 	
 	<haxelib name="openfl" />
 	<haxelib name="promhx" />
-	<haxelib name="tjson" />
+	<haxelib name="tink_macro" />
 	
 	<assets path="Assets" rename="assets" exclude="openfl.svg" />
 	<icon path="Assets/openfl.svg" />
