@@ -13,19 +13,19 @@ j.resolve(4);
 
 ```
 The compose method takes xml-ish syntax definitions, and changes them into
-constructed UI componentns.  For now, the component objects need to be class
+constructed UI components.  For now, the component objects need to be class
 definitions that satisfy two criteria:
 
-1) They must extend a DisplayObject (using OpenFl for now).
-2) They must implement the IFlux interface.
+1. They must extend a DisplayObject (using OpenFl for now).
+2. They must implement the IFlux interface.
 
 
 The template logic for specifying these classes is fairly simple:
-1) The node name must be the fully qualified name of the class (including module
+1. The node name must be the fully qualified name of the class (including module
 names).
-2) The attributes for the xml node must match special member variables (discussed
+2. The attributes for the xml node must match special member variables (discussed
 below)
-3) Attribute values may be static declarations (e.g. a color of ```0x0000FF```,
+3. Attribute values may be static declarations (e.g. a color of ```0x0000FF```,
 or may be bound to special "Stream" variables.
 
 For this example, we're creating an instance of flux.FluxContainer.  Here's
@@ -65,15 +65,15 @@ property.
 
 Why use streams?
 
-1) Streams allow for asynchronous resolution of values, which prevents
+1. Streams allow for asynchronous resolution of values, which prevents
 operations from overloading the ui thread, causing stuttering or jankiness due
 to an overloaded cpu.
-2) Streams allow easy delegation of errors and flow
+2. Streams allow easy delegation of errors and flow
 control logic.
-3) Streams allow for the variables to be read-only within the class itself.
+3. Streams allow for the variables to be read-only within the class itself.
 This is a very useful pattern that makes it clear that they should be "owned"
 by a parent object.
-4) Streams are provided via the [promhx](https://github.com/jdonaldson/promhx)
+4. Streams are provided via the [promhx](https://github.com/jdonaldson/promhx)
 library, which is a speedy and full featured cross platform promise and
 reactive programming language also written by the author.
 
