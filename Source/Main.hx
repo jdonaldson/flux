@@ -15,16 +15,10 @@ class Main extends Sprite {
 		var s = new Stream<Int>();
 
 		// var k = new FluxContainer();
-		var t = new haxe.Timer(20);
+		var t = new haxe.Timer(2000);
 		var count = 0;
 		var k = Stream.stream(0);
-		var l = new PublicStream<Int>(); 
-
-        // var f = Flux.compose("
-        //         <FluxContainer x={j} color={0xFF0000}>
-        //             <FluxContainer x={12} color={0x0000FF}>
-        //         </FluxContainer>
-        //         ");
+		var l = new PublicStream<Int>();
 
         var f = Flux.compose("
                 <pool val='j' arr={[10,20,30]}>
@@ -34,6 +28,11 @@ class Main extends Sprite {
 
 		t.run = function(){
 		    var cnt = count++;
+		    var newarr:Array<Int> = [];
+		    for (i in 0...Std.random(7)+1){
+		        newarr.push(Std.random(100));
+		    }
+            f.stream.arr.resolve(newarr);
 		    l.resolve(cnt);
         }
         flash.Lib.current.addChild(f);

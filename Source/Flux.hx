@@ -38,9 +38,7 @@ class Flux {
 
                 var link_expr = switch(m_expr.expr){
                     case EConst(CIdent(s)) :  {
-                        // var cur_type = Context.typeof(m_expr);
-                        // var async_type = Context.typeof(macro new TemplateStream<Dynamic>());
-                        macro { 
+                        macro {
                             o.templateBindings.push({from : $m_expr, to: o.stream.$a});
                         }
                     }
@@ -52,7 +50,7 @@ class Flux {
                 if (link_expr != null) attr_links.push(link_expr);
             } else {
                 if (xml.nodeName == "pool"  && a == "val"){
-                    pool_var = xml.get(a); 
+                    pool_var = xml.get(a);
                 } else {
                     attr_links.push(macro o.stream.$a.setDefaultState(macro ${xml.get(a)}));
                 }
@@ -91,12 +89,12 @@ class Flux {
         } else {
             return macro {
                 var o = new $typepath();
-                $b{attr_links} 
-                for (a in $a{body_exprs}) o.addChild(a); 
+                $b{attr_links}
+                for (a in $a{body_exprs}) o.addChild(a);
                 o;
             };
         }
-        
+
 
     }
 #end
